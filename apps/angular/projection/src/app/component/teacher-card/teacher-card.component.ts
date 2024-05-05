@@ -1,11 +1,12 @@
-import { Component, inject, OnInit, Signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FakeHttpService,
   randTeacher,
 } from '../../data-access/fake-http.service';
 import { TeacherStore } from '../../data-access/teacher.store';
 import { Teacher } from '../../model/teacher.model';
+import { CardRowDirective } from '../../ui/card/card-row.directive';
 import { CardComponent } from '../../ui/card/card.component';
 import { ListItemComponent } from '../../ui/list-item/list-item.component';
 
@@ -14,18 +15,15 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
   template: `
     <app-card
       class="bg-light-red"
-      [items]="teachers()"
+      [items]="teacherStore.teachers()"
       (onItemAdded)="onItemAdded()">
       <img image src="assets/img/teacher.png" alt="teacher" width="200px" />
 
-      @for (teacher of teachers(); track teacher.id) {
+      <ng-template [cardRow]="teacherStore.teachers()" let-teacher>
         <app-list-item
           [name]="teacher.firstName"
-          [id]="teacher.id"
-          (itemDeleted)="onItemRemoved($event)" />
-      } @empty {
-        <p>No teacher available, they are not paid enough</p>
-      }
+          (itemDeleted)="removeItem(teacher.id)" />
+      </ng-template>
     </app-card>
   `,
   styles: [
@@ -36,27 +34,26 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
     `,
   ],
   standalone: true,
-  imports: [CardComponent, ListItemComponent],
+  imports: [CardComponent, ListItemComponent, CardRowDirective],
 })
 export class TeacherCardComponent implements OnInit {
-  #teacherStore: TeacherStore = inject(TeacherStore);
+  teacherStore: TeacherStore = inject(TeacherStore);
   #fakeHttpService: FakeHttpService = inject(FakeHttpService);
-
-  teachers: Signal<Array<Teacher>> = toSignal(this.#teacherStore.teachers$, {
-    initialValue: [],
-  });
+  #destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
-    this.#fakeHttpService.fetchTeachers$.subscribe((t) =>
-      this.#teacherStore.addAll(t),
-    );
+    this.#fakeHttpService.fetchTeachers$
+      .pipe(takeUntilDestroyed(this.#destroyRef))
+      .subscribe((teachers: Array<Teacher>) =>
+        this.teacherStore.addAll(teachers),
+      );
   }
 
   onItemAdded(): void {
-    this.#teacherStore.addOne(randTeacher());
+    this.teacherStore.addOne(randTeacher());
   }
 
-  onItemRemoved(id: number) {
-    this.#teacherStore.deleteOne(id);
+  removeItem(id: number) {
+    this.teacherStore.deleteOne(id);
   }
 }

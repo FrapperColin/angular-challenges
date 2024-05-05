@@ -1,6 +1,9 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["**/*.ts"],
+  "include": [
+    "**/*.ts",
+    "src/app/component/city-card/city-card.component html"
+  ],
   "compilerOptions": {
     "types": ["jest", "node"]
   }

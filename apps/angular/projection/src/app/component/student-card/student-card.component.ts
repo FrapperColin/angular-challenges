@@ -1,12 +1,18 @@
-import { NgTemplateOutlet } from '@angular/common';
-import { Component, inject, OnInit, Signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FakeHttpService,
   randStudent,
 } from '../../data-access/fake-http.service';
 import { StudentStore } from '../../data-access/student.store';
 import { Student } from '../../model/student.model';
+import { CardRowDirective } from '../../ui/card/card-row.directive';
 import { CardComponent } from '../../ui/card/card.component';
 import { ListItemComponent } from '../../ui/list-item/list-item.component';
 
@@ -15,18 +21,15 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
   template: `
     <app-card
       class="bg-light-green"
-      [items]="students()"
+      [items]="studentStore.students()"
       (onItemAdded)="onItemAdded()">
       <img image src="assets/img/student.webp" alt="student" width="200px" />
 
-      @for (student of students(); track student.id) {
+      <ng-template [cardRow]="studentStore.students()" let-student>
         <app-list-item
           [name]="student.firstName"
-          [id]="student.id"
-          (itemDeleted)="onItemRemoved($event)" />
-      } @empty {
-        <p>No students available, it's friday morning</p>
-      }
+          (itemDeleted)="removeItem(student.id)" />
+      </ng-template>
     </app-card>
   `,
   standalone: true,
@@ -37,27 +40,25 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
       }
     `,
   ],
-  imports: [CardComponent, NgTemplateOutlet, ListItemComponent],
+  imports: [CardComponent, CardRowDirective, ListItemComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StudentCardComponent implements OnInit {
-  #studentStore: StudentStore = inject(StudentStore);
+  studentStore: StudentStore = inject(StudentStore);
   #fakeHttpService: FakeHttpService = inject(FakeHttpService);
-
-  students: Signal<Array<Student>> = toSignal(this.#studentStore.students$, {
-    initialValue: [],
-  });
+  #destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
-    this.#fakeHttpService.fetchStudents$.subscribe((s) =>
-      this.#studentStore.addAll(s),
-    );
+    this.#fakeHttpService.fetchStudents$
+      .pipe(takeUntilDestroyed(this.#destroyRef))
+      .subscribe((students: Student[]) => this.studentStore.addAll(students));
   }
 
   onItemAdded(): void {
-    this.#studentStore.addOne(randStudent());
+    this.studentStore.addOne(randStudent());
   }
 
-  onItemRemoved(id: number) {
-    this.#studentStore.deleteOne(id);
+  removeItem(id: number) {
+    this.studentStore.deleteOne(id);
   }
 }

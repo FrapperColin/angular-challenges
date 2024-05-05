@@ -1,11 +1,18 @@
-import { Component, inject, OnInit, Signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CityStore } from '../../data-access/city.store';
 import {
   FakeHttpService,
   randomCity,
 } from '../../data-access/fake-http.service';
 import { City } from '../../model/city.model';
+import { CardRowDirective } from '../../ui/card/card-row.directive';
 import { CardComponent } from '../../ui/card/card.component';
 import { ListItemComponent } from '../../ui/list-item/list-item.component';
 
@@ -14,18 +21,13 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
   template: `
     <app-card
       class="bg-light-blue"
-      [items]="cities()"
+      [items]="cityStore.cities()"
       (onItemAdded)="onItemAdded()">
       <img image src="assets/img/city.png" alt="city" width="200px" />
 
-      @for (city of cities(); track city.id) {
-        <app-list-item
-          [name]="city.name"
-          [id]="city.id"
-          (itemDeleted)="onItemRemoved($event)" />
-      } @empty {
-        <p>Fallout</p>
-      }
+      <ng-template [cardRow]="cityStore.cities()" let-city>
+        <app-list-item [name]="city.name" (itemDeleted)="removeItem(city.id)" />
+      </ng-template>
     </app-card>
   `,
   styles: [
@@ -37,27 +39,25 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
   ],
 
   standalone: true,
-  imports: [CardComponent, ListItemComponent],
+  imports: [CardComponent, ListItemComponent, CardRowDirective],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CityCardComponent implements OnInit {
-  #cityStore: CityStore = inject(CityStore);
+  cityStore: CityStore = inject(CityStore);
   #fakeHttpService: FakeHttpService = inject(FakeHttpService);
-
-  cities: Signal<Array<City>> = toSignal(this.#cityStore.cities$, {
-    initialValue: [],
-  });
+  #destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
-    this.#fakeHttpService.fetchCities$.subscribe((s) =>
-      this.#cityStore.addAll(s),
-    );
+    this.#fakeHttpService.fetchCities$
+      .pipe(takeUntilDestroyed(this.#destroyRef))
+      .subscribe((cities: Array<City>) => this.cityStore.addAll(cities));
   }
 
   onItemAdded() {
-    this.#cityStore.addOne(randomCity());
+    this.cityStore.addOne(randomCity());
   }
 
-  onItemRemoved(id: number) {
-    this.#cityStore.deleteOne(id);
+  removeItem(id: number) {
+    this.cityStore.deleteOne(id);
   }
 }
