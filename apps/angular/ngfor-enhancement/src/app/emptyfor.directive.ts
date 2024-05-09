@@ -4,7 +4,8 @@ import {
   DoCheck,
   EmbeddedViewRef,
   inject,
-  Input,
+  input,
+  InputSignal,
   TemplateRef,
   ViewContainerRef,
 } from '@angular/core';
@@ -16,21 +17,18 @@ import {
 class NgForEmptyDirective<T> implements DoCheck {
   private vcr = inject(ViewContainerRef);
 
-  @Input() ngForOf?: T[] = undefined;
+  ngForOf: InputSignal<T[]> = input.required<T[]>();
 
-  @Input() ngForIfEmpty!: TemplateRef<unknown>;
-
-  @Input() ngForAnother!: TemplateRef<unknown>;
+  ngForIfEmpty = input.required<TemplateRef<unknown>>();
 
   private ref?: EmbeddedViewRef<unknown>;
 
   ngDoCheck(): void {
     this.ref?.destroy();
 
-    if (!this.ngForOf || this.ngForOf.length === 0) {
-      this.ref = this.vcr.createEmbeddedView(this.ngForAnother);
+    if (!this.ngForOf() || this.ngForOf()?.length === 0) {
+      this.ref = this.vcr.createEmbeddedView(this.ngForIfEmpty());
     } else {
-      this.ref = this.vcr.createEmbeddedView(this.ngForIfEmpty);
       this.ref?.destroy();
     }
   }

@@ -78,6 +78,7 @@
     "@testing-library/user-event": "^14.5.1",
     "@types/jest": "29.4.0",
     "@types/node": "18.16.9",
+    "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "6.21.0",
     "@typescript-eslint/parser": "6.21.0",
     "all-contributors-cli": "^6.26.1",
@@ -106,7 +107,8 @@
     "testing-library-selector": "^0.3.1",
     "ts-jest": "29.1.0",
     "ts-node": "10.9.1",
-    "typescript": "5.3.3"
+    "typescript": "5.3.3",
+    "uuid": "^9.0.1"
   },
   "lint-staged": {
     "*.{ts,json,md}": [
