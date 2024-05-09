@@ -2,31 +2,38 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  ContentChild,
-  Input,
+  InputSignal,
   TemplateRef,
+  contentChild,
+  input,
 } from '@angular/core';
+import {
+  ListDirective,
+  ListTemplateContext,
+} from './directives/list.directive';
 
 @Component({
   selector: 'list',
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div *ngFor="let item of list; index as i">
-      <ng-container
-        *ngTemplateOutlet="
-          listTemplateRef || emptyRef;
-          context: { $implicit: item, appList: item, index: i }
-        "></ng-container>
-    </div>
-
+    @for (item of list(); track $index) {
+      <div>
+        <ng-container
+          *ngTemplateOutlet="
+            listTemplateRef() || emptyRef;
+            context: { $implicit: item, aList: item, index: $index }
+          " />
+      </div>
+    }
     <ng-template #emptyRef>No Template</ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ListComponent<TItem extends object> {
-  @Input() list!: TItem[];
+export class ListComponent<T extends object> {
+  list: InputSignal<T[]> = input.required<T[]>();
 
-  @ContentChild('listRef', { read: TemplateRef })
-  listTemplateRef!: TemplateRef<unknown>;
+  listTemplateRef = contentChild(ListDirective, {
+    read: TemplateRef<ListTemplateContext<T>>,
+  });
 }
