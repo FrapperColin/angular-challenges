@@ -1,51 +1,59 @@
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
-import { randText } from '@ngneat/falso';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { finalize } from 'rxjs';
+import { TodosService } from './services/todos.service';
+import { TodoItemComponent } from './todo/todo-item.component';
 
 @Component({
   standalone: true,
-  imports: [CommonModule],
   selector: 'app-root',
   template: `
-    <div *ngFor="let todo of todos">
-      {{ todo.title }}
-      <button (click)="update(todo)">Update</button>
-    </div>
+    @for (todo of todosService.todos(); track todo.id) {
+      <app-todo-item [todo]="todo" [index]="$index" />
+      {{ $index }}
+    } @empty {
+      <p>No todos available.</p>
+    }
+    @if (todosService.todosFetchAllLock()) {
+      <mat-spinner class="custom-spinner" />
+    }
+    @if (error) {
+      <p>{{ error }}</p>
+    }
   `,
-  styles: [],
+  imports: [CommonModule, TodoItemComponent, MatProgressSpinnerModule],
+  providers: [TodosService],
+  styles: `
+    .custom-spinner {
+      color: black;
+    }
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {
-  todos!: any[];
+  todosService: TodosService = inject(TodosService);
+  #destroyRef: DestroyRef = inject(DestroyRef);
 
-  constructor(private http: HttpClient) {}
+  error?: string;
 
   ngOnInit(): void {
-    this.http
-      .get<any[]>('https://jsonplaceholder.typicode.com/todos')
-      .subscribe((todos) => {
-        this.todos = todos;
-      });
-  }
-
-  update(todo: any) {
-    this.http
-      .put<any>(
-        `https://jsonplaceholder.typicode.com/todos/${todo.id}`,
-        JSON.stringify({
-          todo: todo.id,
-          title: randText(),
-          body: todo.body,
-          userId: todo.userId,
-        }),
-        {
-          headers: {
-            'Content-type': 'application/json; charset=UTF-8',
-          },
-        },
+    this.todosService.todosFetchAllLock.set(true);
+    this.todosService
+      .fetchAll()
+      .pipe(
+        takeUntilDestroyed(this.#destroyRef),
+        finalize(() => this.todosService.todosFetchAllLock.set(false)),
       )
-      .subscribe((todoUpdated: any) => {
-        this.todos[todoUpdated.id - 1] = todoUpdated;
+      .subscribe({
+        error: (err) => (this.error = 'An error happened ; ' + err),
       });
   }
 }
