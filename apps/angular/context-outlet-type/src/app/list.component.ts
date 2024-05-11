@@ -36,7 +36,4 @@ export class ListComponent<TItem extends { name: string }> {
   listTemplateRef = contentChild(ListDirective, {
     read: TemplateRef<ListTemplateContext<TItem>>,
   });
-
-  // @ContentChild(ListDirective, { read: TemplateRef })
-  // listTemplateRef!: TemplateRef<ListTemplateContext<TItem>>;
 }
