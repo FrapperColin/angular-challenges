@@ -23,13 +23,13 @@ import { PersonComponent } from './person.component';
     </person>
 
     <list [list]="students">
-      <ng-container *aList="students as student; index as i">
+      <ng-container *appList="students as student; index as i">
         {{ student.name }}: {{ student.age }} - {{ i }}
       </ng-container>
     </list>
 
     <list [list]="cities">
-      <ng-container *aList="cities as city; index as i">
+      <ng-container *appList="cities as city; index as i">
         {{ city.name }}: {{ city.country }} - {{ i }}
       </ng-container>
     </list>

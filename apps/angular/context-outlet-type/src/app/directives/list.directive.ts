@@ -1,21 +1,16 @@
 import { Directive, input } from '@angular/core';
 
-export interface ListTemplateContext<T> {
-  $implicit: T;
-  aList: T;
+export interface ListTemplateContext<TItem> {
+  $implicit: TItem;
+  appList: TItem;
   index: number;
 }
 @Directive({
-  selector: 'ng-template[aList]',
+  selector: 'ng-template[appList]',
   standalone: true,
 })
-export class ListDirective<T> {
-  data = input.required<
-    T[],
-    {
-      alias: 'aList';
-    }
-  >;
+export class ListDirective<TItem> {
+  data = input.required<TItem[]>({ alias: 'appList' });
 
   static ngTemplateContextGuard<TContextItem>(
     dir: ListDirective<TContextItem>,

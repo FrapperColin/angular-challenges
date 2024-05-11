@@ -22,7 +22,7 @@ import {
         <ng-container
           *ngTemplateOutlet="
             listTemplateRef() || emptyRef;
-            context: { $implicit: item, aList: item, index: $index }
+            context: { $implicit: item, appList: item, index: $index }
           " />
       </div>
     }
@@ -30,10 +30,13 @@ import {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ListComponent<T extends object> {
-  list: InputSignal<T[]> = input.required<T[]>();
+export class ListComponent<TItem extends { name: string }> {
+  list: InputSignal<TItem[]> = input.required<TItem[]>();
 
   listTemplateRef = contentChild(ListDirective, {
-    read: TemplateRef<ListTemplateContext<T>>,
+    read: TemplateRef<ListTemplateContext<TItem>>,
   });
+
+  // @ContentChild(ListDirective, { read: TemplateRef })
+  // listTemplateRef!: TemplateRef<ListTemplateContext<TItem>>;
 }
