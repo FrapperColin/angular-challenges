@@ -18,30 +18,40 @@ import { TodosService } from '../services/todos.service';
   imports: [CommonModule, MatProgressSpinnerModule],
   selector: 'app-todo-item',
   template: `
-    <div>
-      {{ todo().title }}
+    <div class="todo-item">
+      <span>{{ todo().title }}</span>
       @if (loading()) {
-        <span>
-          todo: Todo, index: number
-          <mat-spinner [color]="'black'" />
-        </span>
+        <mat-spinner [diameter]="20" />
       } @else {
-        <button
-          type="button"
-          [disabled]="todosService.todosUpdateLock()"
-          (click)="update(todo(), index())">
-          Update
-        </button>
-        <button
-          type="button"
-          [disabled]="todosService.todosUpdateLock()"
-          (click)="delete(todo())">
-          delete
-        </button>
+        <div class="actions">
+          <button
+            type="button"
+            [disabled]="todosService.todosUpdateLock()"
+            (click)="update(todo(), index())">
+            Update
+          </button>
+          <button
+            type="button"
+            [disabled]="todosService.todosUpdateLock()"
+            (click)="delete(todo())">
+            delete
+          </button>
+        </div>
       }
     </div>
     @if (error) {
       <p>{{ error }}</p>
+    }
+  `,
+  styles: `
+    .todo-item {
+      display: flex;
+      column-gap: 1rem;
+    }
+
+    .actions {
+      display: flex;
+      column-gap: 0.5rem;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

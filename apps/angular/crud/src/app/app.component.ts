@@ -16,24 +16,27 @@ import { TodoItemComponent } from './todo/todo-item.component';
   standalone: true,
   selector: 'app-root',
   template: `
-    @for (todo of todosService.todos(); track todo.id) {
-      <app-todo-item [todo]="todo" [index]="$index" />
-      {{ $index }}
-    } @empty {
-      <p>No todos available.</p>
-    }
-    @if (todosService.todosFetchAllLock()) {
-      <mat-spinner class="custom-spinner" />
-    }
-    @if (error) {
-      <p>{{ error }}</p>
-    }
+    <div class="todos">
+      @for (todo of todosService.todos(); track todo.id) {
+        <app-todo-item [todo]="todo" [index]="$index" />
+      } @empty {
+        <p>No todos available.</p>
+      }
+      @if (todosService.todosFetchAllLock()) {
+        <mat-spinner />
+      }
+      @if (error) {
+        <p>{{ error }}</p>
+      }
+    </div>
   `,
   imports: [CommonModule, TodoItemComponent, MatProgressSpinnerModule],
   providers: [TodosService],
   styles: `
-    .custom-spinner {
-      color: black;
+    .todos {
+      display: flex;
+      flex-direction: column;
+      row-gap: 1rem;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
