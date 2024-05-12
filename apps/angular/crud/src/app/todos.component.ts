@@ -14,19 +14,20 @@ import { TodoItemComponent } from './todo/todo-item.component';
 
 @Component({
   standalone: true,
-  selector: 'app-root',
+  // eslint-disable-next-line @angular-eslint/component-selector
+  selector: 'todos',
   template: `
     <div class="todos">
       @for (todo of todosService.todos(); track todo.id) {
-        <app-todo-item [todo]="todo" [index]="$index" />
+        <todo-item [todo]="todo" [index]="$index" />
       } @empty {
         <p>No todos available.</p>
       }
       @if (todosService.todosFetchAllLock()) {
-        <mat-spinner />
+        <mat-spinner data-testid="todos-loader" />
       }
       @if (error) {
-        <p>{{ error }}</p>
+        <p data-testid="todos-error">{{ error }}</p>
       }
     </div>
   `,
@@ -41,7 +42,7 @@ import { TodoItemComponent } from './todo/todo-item.component';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent implements OnInit {
+export class TodosComponent implements OnInit {
   todosService: TodosService = inject(TodosService);
   #destroyRef: DestroyRef = inject(DestroyRef);
 

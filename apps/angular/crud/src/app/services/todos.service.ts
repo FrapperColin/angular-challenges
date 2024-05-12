@@ -16,7 +16,7 @@ export class TodosService {
   fetchAll(): Observable<Todo[]> {
     return this.#http
       .get<Todo[]>('https://jsonplaceholder.typicode.com/todos')
-      .pipe(tap((updatedTodos) => this.updateTodoList(updatedTodos)));
+      .pipe(tap((updatedTodos) => this.todos.set(updatedTodos)));
   }
 
   updateTodo(todo: Todo, index: number): Observable<Todo> {
@@ -35,26 +35,24 @@ export class TodosService {
       )
       .pipe(
         tap((updatedTodo: Todo) =>
-          this.updateTodoList(this.todos().with(index, updatedTodo)),
+          this.todos.update((actualTodos) =>
+            actualTodos.with(index, updatedTodo),
+          ),
         ),
       );
   }
 
-  delete(todoToDelete: Todo): Observable<never> {
+  deleteTodo(todoToDelete: Todo): Observable<never> {
     return this.#http
       .delete<never>(
         `https://jsonplaceholder.typicode.com/todos/${todoToDelete.id}`,
       )
       .pipe(
         tap(() =>
-          this.updateTodoList(
-            this.todos().filter((todo) => todo.id !== todoToDelete.id),
+          this.todos.update((actualTodos) =>
+            actualTodos.filter((todo) => todo.id !== todoToDelete.id),
           ),
         ),
       );
-  }
-
-  updateTodoList(updatedTodos: Todo[]) {
-    this.todos.set([...updatedTodos]);
   }
 }

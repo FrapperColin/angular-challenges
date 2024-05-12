@@ -16,31 +16,34 @@ import { TodosService } from '../services/todos.service';
 @Component({
   standalone: true,
   imports: [CommonModule, MatProgressSpinnerModule],
-  selector: 'app-todo-item',
+  // eslint-disable-next-line @angular-eslint/component-selector
+  selector: 'todo-item',
   template: `
     <div class="todo-item">
       <span>{{ todo().title }}</span>
       @if (loading()) {
-        <mat-spinner [diameter]="20" />
+        <mat-spinner [diameter]="20" data-test="todo-loader" />
       } @else {
         <div class="actions">
           <button
             type="button"
             [disabled]="todosService.todosUpdateLock()"
-            (click)="update(todo(), index())">
+            (click)="update(todo(), index())"
+            [attr.data-testid]="'update-todo' + todo().id">
             Update
           </button>
           <button
             type="button"
             [disabled]="todosService.todosUpdateLock()"
-            (click)="delete(todo())">
+            (click)="deleteTodo(todo())"
+            [attr.data-testid]="'delete-todo' + todo().id">
             delete
           </button>
         </div>
       }
     </div>
     @if (error) {
-      <p>{{ error }}</p>
+      <p data-testid="todo-error">{{ error }}</p>
     }
   `,
   styles: `
@@ -83,10 +86,10 @@ export class TodoItemComponent {
       });
   }
 
-  delete(todo: Todo): void {
+  deleteTodo(todo: Todo): void {
     this.todosService.todosUpdateLock.set(true);
     this.todosService
-      .delete(todo)
+      .deleteTodo(todo)
       .pipe(
         takeUntilDestroyed(this.#destroyRef),
         finalize(() => {

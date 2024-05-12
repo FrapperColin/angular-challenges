@@ -1,2 +1,14 @@
+import { getTestBed } from '@angular/core/testing';
+import {
+  BrowserDynamicTestingModule,
+  platformBrowserDynamicTesting,
+} from '@angular/platform-browser-dynamic/testing';
 import '@testing-library/jest-dom';
 import 'jest-preset-angular/setup-jest';
+
+getTestBed().resetTestEnvironment();
+getTestBed().initTestEnvironment(
+  BrowserDynamicTestingModule,
+  platformBrowserDynamicTesting(),
+  { teardown: { destroyAfterEach: true } },
+);
