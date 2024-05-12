@@ -1,7 +1,7 @@
 /* eslint-disable */
 export default {
   displayName: 'angular-crud',
-  preset: 'jest-puppeteer',
+  preset: '../../../jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
   globals: {},
   coverageDirectory: '../../../coverage/apps/angular/crud',
