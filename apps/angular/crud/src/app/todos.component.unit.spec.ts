@@ -7,6 +7,7 @@ import { TodosService } from './services/todos.service';
 import { TodosServiceMock } from './services/todos.service.mock';
 import { TodoItemMockComponent } from './todo/todo-item.component.mock';
 import { TodosComponent } from './todos.component';
+import { queryExpectToExist } from './utils/test-utils';
 
 @Component({
   template: `
@@ -23,13 +24,16 @@ describe('TodosComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TestHostComponent, TodosComponent, TodoItemMockComponent],
-      // declarations: [TestHostComponent],
+      imports: [TestHostComponent, TodosComponent],
       providers: [{ provide: TodosService, useClass: TodosServiceMock }],
     })
       .overrideComponent(TodosComponent, {
         set: {
-          imports: [HttpClientModule, MatProgressSpinnerModule],
+          imports: [
+            HttpClientModule,
+            MatProgressSpinnerModule,
+            TodoItemMockComponent,
+          ],
         },
       })
       .compileComponents();
@@ -46,5 +50,7 @@ describe('TodosComponent', () => {
       .mockReturnValue(throwError(() => new HttpErrorResponse({})));
 
     fixture.detectChanges();
+
+    queryExpectToExist('todos-error');
   });
 });

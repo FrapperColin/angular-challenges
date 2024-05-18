@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Todo } from '@ngneat/falso';
 import { finalize } from 'rxjs';
 import { TodosService } from './services/todos.service';
 import { TodoItemComponent } from './todo/todo-item.component';
@@ -19,7 +20,7 @@ import { TodoItemComponent } from './todo/todo-item.component';
   template: `
     <div class="todos">
       @for (todo of todosService.todos(); track todo.id) {
-        <todo-item [todo]="todo" [index]="$index" />
+        <todo-item [todo]="todo" [index]="$index" data-testid="todo-item" />
       } @empty {
         <p>No todos available.</p>
       }
@@ -32,7 +33,6 @@ import { TodoItemComponent } from './todo/todo-item.component';
     </div>
   `,
   imports: [CommonModule, TodoItemComponent, MatProgressSpinnerModule],
-  providers: [TodosService],
   styles: `
     .todos {
       display: flex;
@@ -57,6 +57,9 @@ export class TodosComponent implements OnInit {
         finalize(() => this.todosService.todosFetchAllLock.set(false)),
       )
       .subscribe({
+        next: (updatedTodos: Todo[]) => {
+          this.todosService.todos.set(updatedTodos);
+        },
         error: (err) => (this.error = 'An error happened ; ' + err),
       });
   }

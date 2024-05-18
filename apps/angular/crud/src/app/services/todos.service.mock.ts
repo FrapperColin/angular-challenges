@@ -11,11 +11,11 @@ export class TodosServiceMock {
     return of([]);
   }
 
-  updateTodo(todo: Todo, index: number): Observable<Todo> {
+  updateTodo(todo: Todo): Observable<Todo> {
     return of();
   }
 
-  deleteTodo(todoToDelete: Todo): Observable<never> {
-    return of();
+  deleteTodo(todoToDelete: Todo): Observable<unknown> {
+    return of({});
   }
 }

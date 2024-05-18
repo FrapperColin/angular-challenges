@@ -20,30 +20,32 @@ import { TodosService } from '../services/todos.service';
   selector: 'todo-item',
   template: `
     <div class="todo-item">
-      <span>{{ todo().title }}</span>
+      <span [attr.data-testid]="'todo-title-' + todo().id">
+        {{ todo().title }}
+      </span>
       @if (loading()) {
-        <mat-spinner [diameter]="20" data-test="todo-loader" />
+        <mat-spinner [diameter]="20" data-testid="todo-loader" />
       } @else {
         <div class="actions">
           <button
             type="button"
             [disabled]="todosService.todosUpdateLock()"
             (click)="update(todo(), index())"
-            [attr.data-testid]="'update-todo' + todo().id">
+            [attr.data-testid]="'update-todo-' + todo().id">
             Update
           </button>
           <button
             type="button"
             [disabled]="todosService.todosUpdateLock()"
             (click)="deleteTodo(todo())"
-            [attr.data-testid]="'delete-todo' + todo().id">
+            [attr.data-testid]="'delete-todo-' + todo().id">
             delete
           </button>
         </div>
       }
     </div>
     @if (error) {
-      <p data-testid="todo-error">{{ error }}</p>
+      <p [attr.data-testid]="'todo-error-' + todo().id">{{ error }}</p>
     }
   `,
   styles: `
@@ -73,7 +75,7 @@ export class TodoItemComponent {
     this.loading.set(true);
     this.todosService.todosUpdateLock.set(true);
     this.todosService
-      .updateTodo(todo, index)
+      .updateTodo(todo)
       .pipe(
         takeUntilDestroyed(this.#destroyRef),
         finalize(() => {
@@ -82,14 +84,18 @@ export class TodoItemComponent {
         }),
       )
       .subscribe({
+        next: (updatedTodo: Todo) =>
+          this.todosService.todos.update((actualTodos) =>
+            actualTodos.with(index, updatedTodo),
+          ),
         error: (err) => (this.error = 'An error happened ; ' + err),
       });
   }
 
-  deleteTodo(todo: Todo): void {
+  deleteTodo(todoToDelete: Todo): void {
     this.todosService.todosUpdateLock.set(true);
     this.todosService
-      .deleteTodo(todo)
+      .deleteTodo(todoToDelete)
       .pipe(
         takeUntilDestroyed(this.#destroyRef),
         finalize(() => {
@@ -97,6 +103,10 @@ export class TodoItemComponent {
         }),
       )
       .subscribe({
+        next: () =>
+          this.todosService.todos.update((actualTodos) =>
+            actualTodos.filter((todo) => todo.id !== todoToDelete.id),
+          ),
         error: (err) => (this.error = 'An error happened ; ' + err),
       });
   }
